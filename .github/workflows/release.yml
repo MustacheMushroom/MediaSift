@@ -1,5 +1,8 @@
 name: Release
 
+# On every push to main: run CI, then tag and publish a GitHub Release when the
+# Conventional Commits since the last tag call for one. The release job needs
+# CI, so a release is never cut for a commit whose CI failed.
 on:
   push:
     branches:
@@ -8,8 +11,16 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
   release:
+    needs: lint
     permissions:
       contents: write
     uses: Aegolius-Labs/.github/.github/workflows/conventional-release.yml@main
